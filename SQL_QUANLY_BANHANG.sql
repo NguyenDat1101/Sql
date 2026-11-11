@@ -1,0 +1,88 @@
+﻿USE master;
+GO
+
+IF EXISTS (SELECT * FROM sys.databases WHERE name = 'QL_BANHANG')
+BEGIN
+    ALTER DATABASE QL_BANHANG SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+    DROP DATABASE QL_BANHANG;
+END
+GO
+
+CREATE DATABASE QL_BANHANG;
+GO
+USE QL_BANHANG;
+GO
+
+-- 1. Bảng Khách Hàng
+CREATE TABLE KHACH_HANG (
+    MaKH VARCHAR(10) PRIMARY KEY,
+    TenKH NVARCHAR(50),
+    ThanhPho NVARCHAR(30),
+    SDT VARCHAR(15)
+);
+
+-- 2. Bảng Sản Phẩm
+CREATE TABLE SAN_PHAM (
+    MaSP VARCHAR(10) PRIMARY KEY,
+    TenSP NVARCHAR(50),
+    LoaiSP NVARCHAR(30),
+    DonGia INT
+);
+
+-- 3. Bảng Hóa Đơn
+CREATE TABLE HOA_DON (
+    MaHD VARCHAR(10) PRIMARY KEY,
+    MaKH VARCHAR(10),
+    NgayLap DATE,
+    FOREIGN KEY (MaKH) REFERENCES KHACH_HANG(MaKH)
+);
+
+-- 4. Bảng Chi Tiết Hóa Đơn
+CREATE TABLE CHI_TIET_HD (
+    MaHD VARCHAR(10),
+    MaSP VARCHAR(10),
+    SoLuong INT,
+    PRIMARY KEY (MaHD, MaSP),
+    FOREIGN KEY (MaHD) REFERENCES HOA_DON(MaHD),
+    FOREIGN KEY (MaSP) REFERENCES SAN_PHAM(MaSP)
+);
+GO
+
+-- Nạp dữ liệu mẫu
+INSERT INTO KHACH_HANG VALUES
+('KH01', N'Trần Văn An', N'Hà Nội', '0912345678'),
+('KH02', N'Lê Thị Bình', N'TP.HCM', '0987654321'),
+('KH03', N'Phạm Hoàng Cường', N'Đà Nẵng', '0905111222'),
+('KH04', N'Ngô Minh Dung', N'Hà Nội', '0933444555'),
+('KH05', N'Vũ Hải Yến', N'Cần Thơ', NULL);
+
+INSERT INTO SAN_PHAM VALUES
+('SP01', N'Laptop Dell XPS', N'Laptop', 25000000),
+('SP02', N'Chuột Logitech G102', N'Phụ kiện', 400000),
+('SP03', N'Bàn phím cơ Keychron', N'Phụ kiện', 1800000),
+('SP04', N'iPhone 15 Pro', N'Điện thoại', 28000000),
+('SP05', N'Tai nghe AirPods Pro', N'Phụ kiện', 5500000);
+
+INSERT INTO HOA_DON VALUES
+('HD01', 'KH01', '2026-10-01'),
+('HD02', 'KH02', '2026-10-05'),
+('HD03', 'KH01', '2026-10-12'),
+('HD04', 'KH03', '2026-11-01'),
+('HD05', 'KH04', '2026-11-05');
+
+INSERT INTO CHI_TIET_HD VALUES
+('HD01', 'SP01', 1),
+('HD01', 'SP02', 2),
+('HD02', 'SP04', 1),
+('HD03', 'SP03', 1),
+('HD03', 'SP05', 1),
+('HD04', 'SP02', 5),
+('HD05', 'SP01', 1),
+('HD05', 'SP04', 1);
+GO
+
+SELECT HD.MaHD, HD.MaKH, KH.TenKH, CT.SoLuong, SP.MaSP, SP.TenSP
+FROM HOA_DON HD
+INNER JOIN KHACH_HANG KH ON HD.MaKH = KH.MaKH
+INNER JOIN CHI_TIET_HD CT ON HD.MaHD = CT.MaHD
+INNER JOIN SAN_PHAM SP ON CT.MaSP = SP.MaSP;  
