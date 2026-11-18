@@ -1,0 +1,96 @@
+USE master;
+GO
+
+IF EXISTS (SELECT * FROM sys.databases WHERE name = 'QL_DIEM')
+BEGIN
+    ALTER DATABASE QL_DIEM SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+    DROP DATABASE QL_DIEM;
+END
+GO
+
+CREATE DATABASE QL_DIEM;
+GO
+
+USE QL_DIEM;
+GO
+
+
+CREATE TABLE LOP (
+    MaLop VARCHAR(10) PRIMARY KEY,
+    TenLop NVARCHAR(30)
+);
+GO
+
+CREATE TABLE HOC_VIEN (
+    MaHV VARCHAR(9) PRIMARY KEY,
+    TenHV NVARCHAR(30),
+    DT VARCHAR(10),
+    GioiTinh NVARCHAR(3),
+    MaLop VARCHAR(10),
+    FOREIGN KEY (MaLop) REFERENCES LOP(MaLop) 
+);
+GO
+
+
+CREATE TABLE MON (
+    MaMon VARCHAR(10) PRIMARY KEY,
+    TenMon NVARCHAR(40),
+    STC INT
+);
+GO
+
+CREATE TABLE KETQUA (
+    MaHV VARCHAR(9),
+    MaMon VARCHAR(10),
+    LanThi INT, 
+    Diem FLOAT,
+    PRIMARY KEY (MaHV, MaMon, LanThi),
+    FOREIGN KEY (MaHV) REFERENCES HOC_VIEN(MaHV), 
+    FOREIGN KEY (MaMon) REFERENCES MON(MaMon) 
+);
+GO
+
+INSERT INTO LOP(MaLop, TenLop) VALUES ('TT', 'Da25ttb');
+INSERT INTO HOC_VIEN(MaHV, TenHV, DT, GioiTinh, MaLop) VALUES 
+('110125200', 'Nguyen Tuan Tu', '0974481935', 'Nam', 'TT'),
+('110125031', 'Nguyen Minh Dat', '123456789', 'Nam', 'TT'),
+('110125149', 'Nguyen Hoang Thang', '123456789', 'Nam', 'TT'),
+('110125196', 'Le Dang Trong', '123456789', 'Nam', 'TT'),
+('110125075', 'Nguyen Hoang Kha', '12345656', 'Nam', 'TT'),
+('110125029', 'Nguyen Ba Dat', '123456789', 'Nam', 'TT');
+
+INSERT INTO MON(MaMon, TenMon, STC) VALUES 
+('001', 'csdl', 3),
+('002', 'ctdl', 4),
+('003', 'mang may tinh', 3),
+('004', 'xac suat thong ke', 4),
+('005', 'lap trinh huong doi tuong', 3);
+
+INSERT INTO KETQUA(MaHV, MaMon, LanThi, Diem) VALUES 
+('110125031', '001', 3, 0.0),
+('110125031', '002', 2, 5.5),
+('110125075', '003', 1, 10.0),
+('110125200', '004', 1, 8.9);
+
+SELECT HV.TenHV, L.TenLop 
+FROM HOC_VIEN HV
+INNER JOIN LOP L ON HV.MaLop = L.MaLop;
+
+SELECT TenHV 
+FROM HOC_VIEN
+WHERE GioiTinh = N'Nam';
+
+SELECT TenMon
+FROM MON
+WHERE STC = 3;
+
+SELECT HV.TenHV, M.TenMon, KQ.Diem
+FROM HOC_VIEN HV
+INNER JOIN KETQUA KQ ON HV.MaHV = KQ.MaHV
+INNER JOIN MON M ON KQ.MaMon = M.MaMon;
+
+SELECT HV.MaHV, HV.TenHV, COUNT(DISTINCT KQ.MaMon) AS SoMonDaThi
+FROM HOC_VIEN HV
+LEFT JOIN KETQUA KQ ON HV.MaHV = KQ.MaHV
+GROUP BY HV.MaHV, HV.TenHV;
+
